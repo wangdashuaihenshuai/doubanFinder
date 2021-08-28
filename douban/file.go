@@ -78,7 +78,7 @@ func replaceName(word string) string {
 	return word
 }
 
-func FormatMovieName(name string) *MovieNameInfo {
+func ParseMovieInfo(name string) *MovieNameInfo {
 	name = strings.ToLower(name)
 	name = urlReg.ReplaceAllString(name, "")
 	words := splitName(name)
