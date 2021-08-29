@@ -20,32 +20,38 @@ var numReg2 = regexp.MustCompile(`(\d+)`)
 
 var dmp = diffmatchpatch.New()
 
-func ParseMovieNum(name string, nextName string) int {
+func ParseMovieNumStr(name string, nextName string) (string, string) {
 	name = strings.ToLower(name)
 	if nextName != "" {
 		nextName = strings.ToLower(nextName)
 	}
 
 	for _, r := range numRegs {
-		num := getParseInt(name, r)
-		if num >= 0 {
-			return num
+		allStr, str := getRegexString(name, r)
+		if str != "" {
+			return allStr, str
 		}
 	}
 
-	allNumStr := getParseString(name, numReg2)
+	allStr, allNumStr := getRegexString(name, numReg2)
 	if len(allNumStr) == len(name) {
-		return getParseInt(name, numReg2)
+		return allStr, allNumStr
 	}
 
 	if nextName != "" {
 		diffNum := parseDiffNum(name, nextName)
 		if diffNum >= 0 {
-			return diffNum
+			str := strconv.Itoa(diffNum)
+			return str, str
 		}
 	}
 
-	return getParseInt(name, numReg2)
+	return getRegexString(name, numReg2)
+}
+
+func ParseMovieNum(name string, nextName string) int {
+	_, numStr := ParseMovieNumStr(name, nextName)
+	return parseInt(numStr)
 }
 
 var numRune = map[rune]bool{
@@ -113,23 +119,27 @@ func getDiffNumLeft(name string, nextName string) string {
 	return left
 }
 
-func getParseString(str string, r *regexp.Regexp) string {
+func getRegexString(str string, r *regexp.Regexp) (string, string) {
 	info := r.FindStringSubmatch(str)
 	if len(info) <= 1 {
-		return ""
+		return "", ""
 	}
 
-	return info[1]
+	return info[0], info[1]
 }
 
 func getParseInt(str string, r *regexp.Regexp) int {
-	parseStr := getParseString(str, r)
+	_, parseStr := getRegexString(str, r)
 
-	if str == "" {
+	if parseStr == "" {
 		return -1
 	}
 
-	i, err := strconv.Atoi(parseStr)
+	return parseInt(parseStr)
+}
+
+func parseInt(str string) int {
+	i, err := strconv.Atoi(str)
 	if err != nil {
 		return -1
 	}
